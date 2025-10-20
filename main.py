@@ -1,4 +1,3 @@
-# Главный файл приложения
 from fastapi import FastAPI
 from typing import List, Dict, Any
 from datetime import datetime
@@ -9,7 +8,6 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# Временное хранилище (позже будет заменено на PostgreSQL)
 tasks_db: List[Dict[str, Any]] = [
     {
         "id": 1,
