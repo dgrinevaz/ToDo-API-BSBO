@@ -1,5 +1,5 @@
 from typing import List
-from fastapi import APIRouter, Query, HTTPException
+from fastapi import APIRouter, Query, HTTPException, Response, status
 from contracts.tasks import *
 from database import tasks_db
 
@@ -8,7 +8,7 @@ router = APIRouter(
     tags=["tasks"]
 )
 
-@router.get("")
+@router.get("/")
 async def get_tasks_by_filter(
         query: str = Query(default=None, min_length=2),
         quadrants: List[TaskQuadrant] = Query(default=None),
@@ -75,7 +75,11 @@ async def update_task(update_request: UpdateTaskRequest):
         if update_request.status == TaskStatus.Completed:
             task_to_update.completed_at = datetime.now()
 
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
 @router.delete("/{task_id}")
 async def delete_task_by_id(task_id: int):
     task_to_delete = await get_task_by_id(task_id)
     tasks_db.remove(task_to_delete)
+
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
