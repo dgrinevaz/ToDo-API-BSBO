@@ -7,7 +7,8 @@ app = FastAPI(
     version="1.0.0",
     contact={
         "name": "Daniil Grinev"
-    }
+    },
+    root_path="/api/v1"
 )
 
 app.include_router(tasks.router)

@@ -7,40 +7,36 @@ tasks_db: List[Task] = [
         id=1,
         title="Сдать проект по FastAPI",
         description="Завершить разработку API и написать документацию",
-        is_important=True,
-        is_urgent=True,
         quadrant=TaskQuadrant.Q1,
         status=TaskStatus.Pending,
-        created_at=datetime.now()
+        created_at=datetime.now(),
+        completed_at=None
     ),
     Task(
         id=2,
         title="Изучить SQLAlchemy",
         description="Прочитать документацию и попробовать примеры",
-        is_important=True,
-        is_urgent=False,
         quadrant=TaskQuadrant.Q2,
         status=TaskStatus.Pending,
-        created_at=datetime.now()
+        created_at=datetime.now(),
+        completed_at=None
     ),
     Task(
         id=3,
         title="Сходить на лекцию",
         description=None,
-        is_important=False,
-        is_urgent=True,
         quadrant=TaskQuadrant.Q3,
         status=TaskStatus.Pending,
-        created_at=datetime.now()
+        created_at=datetime.now(),
+        completed_at=None
     ),
     Task(
         id=4,
         title="Посмотреть сериал",
         description="Новый сезон любимого сериала",
-        is_important=False,
-        is_urgent=False,
         quadrant=TaskQuadrant.Q4,
         status=TaskStatus.Pending,
-        created_at=datetime.now()
+        created_at=datetime.now(),
+        completed_at=None
     )
 ]
