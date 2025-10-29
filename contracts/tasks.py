@@ -21,15 +21,15 @@ class Task(BaseModel):
         description="Идентификатор")
 
     title: str = Field(
-     ...,
-     min_length=3,
-     max_length=100,
-     description="Название")
+        ...,
+        min_length=3,
+        max_length=100,
+        description="Название")
 
-    description: Optional[str] = Field(
-     None,
-     max_length=500,
-     description="Описание")
+    description: str = Field(
+        None,
+        max_length=500,
+        description="Описание")
 
     quadrant: TaskQuadrant = Field(
         ...,
@@ -49,15 +49,15 @@ class Task(BaseModel):
 
 class CreateTaskRequest(BaseModel):
     title: str = Field(
-     ...,
-     min_length=3,
-     max_length=100,
-     description="Название")
+        ...,
+        min_length=3,
+        max_length=100,
+        description="Название")
 
     description: Optional[str] = Field(
-     None,
-     max_length=500,
-     description="Описание")
+        None,
+        max_length=500,
+        description="Описание")
 
     quadrant: TaskQuadrant = Field(
         ...,
@@ -78,21 +78,21 @@ class UpdateTaskRequest(BaseModel):
         gt=0,
         description="Идентификатор")
 
-    title: Optional[str] = Field(
-     ...,
-     min_length=3,
-     max_length=100,
-     description="Название")
+    title: str = Field(
+        None,
+        min_length=3,
+        max_length=100,
+        description="Название")
 
-    description: Optional[str] = Field(
-     None,
-     max_length=500,
-     description="Описание")
+    description: str = Field(
+        None,
+        max_length=500,
+        description="Описание")
 
-    quadrant: Optional[TaskQuadrant] = Field(
-        ...,
+    quadrant: TaskQuadrant = Field(
+        None,
         description="Квадрант")
 
-    status: Optional[TaskStatus] = Field(
-        ...,
+    status: TaskStatus = Field(
+        None,
         description="Статус")

@@ -15,9 +15,10 @@ async def get_tasks_by_filter(
         statuses: List[TaskStatus] = Query(default=None)) -> List[Task]:
     tasks = tasks_db
     if query:
+        lower_query = query.strip().lower()
         tasks = [task for task in tasks
-                 if query.lower() in task.title.lower()
-                    or (task.description and query.lower() in task.description.lower())]
+                 if lower_query in task.title.lower()
+                    or (task.description and lower_query in task.description.lower())]
 
     if quadrants:
         tasks = [task for task in tasks if task.quadrant in quadrants]
