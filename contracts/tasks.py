@@ -1,21 +1,23 @@
 from datetime import datetime
 from enum import Enum
 from typing import Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 
 class TaskQuadrant(Enum):
-    Q1 = "q1"
-    Q2 = "q2"
-    Q3 = "q3"
-    Q4 = "q4"
+    Q1 = "Q1"
+    Q2 = "Q2"
+    Q3 = "Q3"
+    Q4 = "Q4"
 
 class TaskStatus(Enum):
-    Pending = "pending"
-    InProgress = "in_progress"
-    Completed = "completed"
+    Pending = "PENDING"
+    InProgress = "IN_PROGRESS"
+    Completed = "COMPLETED"
 
-class Task(BaseModel):
+class TaskResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int = Field(
         ...,
         description="Идентификатор")
@@ -26,7 +28,7 @@ class Task(BaseModel):
         max_length=100,
         description="Название")
 
-    description: str = Field(
+    description: Optional[str] = Field(
         None,
         max_length=500,
         description="Описание")

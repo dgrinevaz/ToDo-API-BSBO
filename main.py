@@ -4,11 +4,11 @@ from routers import tasks, stats
 app = FastAPI(
     title="ToDo лист API",
     description="API для управления задачами с использованием матрицы Эйзенхауэра",
-    version="1.0.0",
+    version="2.0.0",
     contact={
         "name": "Daniil Grinev"
     },
-    root_path="/api/v1"
+    root_path="/api/v2"
 )
 
 app.include_router(tasks.router)
