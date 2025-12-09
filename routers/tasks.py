@@ -2,10 +2,13 @@ from typing import List
 from fastapi import APIRouter, Query, HTTPException, Response, status, Depends
 from sqlalchemy import select, or_
 from sqlalchemy.ext.asyncio import AsyncSession
+from contracts.authorization import UserRole
 from contracts.tasks import *
 from database.database import get_database_session
 from database.tables.task import *
 from datetime import date
+from database.tables.user import User
+from utils.dependencies import get_current_user
 
 router = APIRouter(
     prefix="/tasks",
@@ -19,6 +22,7 @@ async def get_tasks_by_filter(
         statuses: List[TaskStatus] = Query(default=None),
         deadline_before: date | None = Query(default=None),
         deadline_after: date | None = Query(default=None),
+        current_user: User = Depends(get_current_user),
         database: AsyncSession = Depends(get_database_session)) -> List[TaskResponse]:
     if deadline_before and deadline_after and deadline_before < deadline_after:
         raise HTTPException(
@@ -44,6 +48,9 @@ async def get_tasks_by_filter(
     if deadline_after:
         tasks = tasks.where(Task.deadline_at >= deadline_after)
 
+    if current_user.role == UserRole.USER.value:
+        tasks = tasks.where(Task.user_id == current_user.id)
+
     result = await database.execute(tasks)
     tasks = result.scalars().all()
 
@@ -52,11 +59,15 @@ async def get_tasks_by_filter(
 @router.get("/{task_id}")
 async def get_task_by_id(
         task_id: int,
+        current_user: User = Depends(get_current_user),
         database: AsyncSession = Depends(get_database_session)) -> TaskResponse:
     result = await database.execute(select(Task).where(Task.id == task_id))
     task = result.scalar_one_or_none()
     if not task:
-        raise HTTPException(status_code=404, detail="Задача не найдена")
+        raise HTTPException(status_code=404, detail="Задача не найдена.")
+
+    if current_user.role == UserRole.USER.value and task.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="У вас нет доступа к данной задаче.")
 
     return task
 
@@ -85,6 +96,7 @@ async def create_task(
 @router.put("/")
 async def update_task(
         update_request: UpdateTaskRequest,
+        current_user: User = Depends(get_current_user),
         database: AsyncSession = Depends(get_database_session)):
     if update_request is None:
         raise HTTPException(status_code=400, detail="Запрос редактирования задачи не может быть null.")
@@ -92,6 +104,8 @@ async def update_task(
     result = await database.execute(
         select(Task).where(Task.id == update_request.id))
     task_to_update = result.scalar_one_or_none()
+    if current_user.role == UserRole.USER.value and task_to_update.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="У вас нет доступа к данной задаче.")
 
     if update_request.title and task_to_update.title != update_request.title:
         task_to_update.title = update_request.title
@@ -114,12 +128,16 @@ async def update_task(
 @router.delete("/{task_id}")
 async def delete_task_by_id(
         task_id: int,
+        current_user: User = Depends(get_current_user),
         database: AsyncSession = Depends(get_database_session)):
     result = await database.execute(
         select(Task).where(Task.id == task_id))
     task_to_delete = result.scalar_one_or_none()
     if task_to_delete is None:
         raise HTTPException(status_code=404, detail="Задача не найдена")
+
+    if current_user.role == UserRole.USER.value and task_to_delete.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="У вас нет доступа к данной задаче.")
 
     await database.delete(task_to_delete)
     await database.commit()

@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from routers import tasks, stats
+from routers import tasks, stats, authorization, admin
 
 app = FastAPI(
     title="ToDo лист API",
@@ -8,12 +8,13 @@ app = FastAPI(
     contact={
         "name": "Daniil Grinev"
     },
-    root_path="/api/v2"
+    root_path="/api/v3"
 )
 
+app.include_router(authorization.router)
+app.include_router(admin.router)
 app.include_router(tasks.router)
 app.include_router(stats.router)
-
 
 @app.get("/")
 async def welcome() -> dict:

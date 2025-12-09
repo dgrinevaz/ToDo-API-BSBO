@@ -1,5 +1,8 @@
-from sqlalchemy import Column, Integer, String, DateTime, Text
+from sqlalchemy import Column, Integer, String, DateTime, Text, ForeignKey
+from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
+
+from contracts.tasks import TaskStatus
 from database.database import database_context
 
 class Task(database_context):
@@ -10,6 +13,12 @@ class Task(database_context):
         primary_key=True,
         index=True,
         autoincrement=True)
+
+    user_id = Column(
+        Integer,
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True)
 
     title = Column(
         Text,
@@ -25,7 +34,8 @@ class Task(database_context):
 
     status = Column(
         Text,
-        nullable=False)
+        nullable=False,
+        default=TaskStatus.Pending)
 
     created_at = Column(
         DateTime(timezone=True),
@@ -40,12 +50,18 @@ class Task(database_context):
         DateTime(timezone=True),
         nullable=True)
 
+    owner = relationship(
+        "User",
+        back_populates="tasks"
+    )
+
 def __repr__(self) -> str:
     return f"<Task(id={self.id}, title='{self.title}', quadrant='{self.quadrant}')>"
 
 def to_dict(self) -> dict:
     return {
     "id": self.id,
+    "user_id": self.user_id,
     "title": self.title,
     "description": self.description,
     "quadrant": self.quadrant,
