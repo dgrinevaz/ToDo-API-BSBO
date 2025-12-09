@@ -45,6 +45,10 @@ class TaskResponse(BaseModel):
         ...,
         description="Дата создания")
 
+    deadline_at: datetime = Field(
+        ...,
+        description="Дата дедлайна")
+
     completed_at: Optional[datetime] = Field(
         ...,
         description="Дата закрытия")
@@ -65,9 +69,9 @@ class CreateTaskRequest(BaseModel):
         ...,
         description="Квадрант")
 
-    status: TaskStatus = Field(
+    deadline_at: datetime = Field(
         ...,
-        description="Статус")
+        description="Плановая дата завершения")
 
 class CreateTaskResponse(BaseModel):
     id: int = Field(

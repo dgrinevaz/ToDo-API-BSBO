@@ -1,10 +1,11 @@
 from typing import List
 from fastapi import APIRouter, Query, HTTPException, Response, status, Depends
-from sqlalchemy import select
+from sqlalchemy import select, or_
 from sqlalchemy.ext.asyncio import AsyncSession
 from contracts.tasks import *
 from database.database import get_database_session
 from database.tables.task import *
+from datetime import date
 
 router = APIRouter(
     prefix="/tasks",
@@ -16,18 +17,32 @@ async def get_tasks_by_filter(
         query: str = Query(default=None, min_length=2),
         quadrants: List[TaskQuadrant] = Query(default=None),
         statuses: List[TaskStatus] = Query(default=None),
+        deadline_before: date | None = Query(default=None),
+        deadline_after: date | None = Query(default=None),
         database: AsyncSession = Depends(get_database_session)) -> List[TaskResponse]:
+    if deadline_before and deadline_after and deadline_before < deadline_after:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Дата дедлайна до должна быть больше, чем дата дедлайна после.",
+        )
+
     tasks = select(Task)
     if query:
-        lower_query = query.strip().lower()
-        tasks = tasks.where(lower_query in Task.title.lower()
-                    or (Task.description and lower_query in Task.description.lower()))
+        lower_query = f"%{query.strip().lower()}%"
+        tasks = tasks.where(or_(func.lower(Task.title).ilike(lower_query),
+                                func.lower(Task.description).ilike(lower_query)))
 
     if quadrants:
-        tasks = tasks.where(Task.quadrant.in_(quadrants))
+        tasks = tasks.where(Task.quadrant.in_([q.value for q in quadrants]))
 
     if statuses:
-        tasks = tasks.where(Task.status.in_(statuses))
+        tasks = tasks.where(Task.status.in_([s.value for s in statuses]))
+
+    if deadline_before:
+        tasks = tasks.where(Task.deadline_at <= deadline_before)
+
+    if deadline_after:
+        tasks = tasks.where(Task.deadline_at >= deadline_after)
 
     result = await database.execute(tasks)
     tasks = result.scalars().all()
@@ -55,10 +70,10 @@ async def create_task(
     new_task = Task(
         title=create_request.title,
         description=create_request.description,
-        quadrant=create_request.quadrant,
-        status=create_request.status,
+        quadrant=create_request.quadrant.value,
+        status=TaskStatus.Pending.value,
         created_at=datetime.now(),
-        completed_at=None,
+        deadline_at=create_request.deadline_at
     )
 
     database.add(new_task)

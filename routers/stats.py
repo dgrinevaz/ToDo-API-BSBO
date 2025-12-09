@@ -1,7 +1,9 @@
-from typing import Dict
+from datetime import timezone
+from typing import Dict, List
 from fastapi import APIRouter, Depends
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from contracts.stats import *
 from database.database import get_database_session
 from contracts.tasks import TaskQuadrant, TaskStatus
 from database.tables.task import Task
@@ -43,3 +45,41 @@ async def get_tasks_stats(database: AsyncSession = Depends(get_database_session)
         "by_quadrant": by_quadrant,
         "by_status": by_status,
     }
+
+@router.get(
+    "/deadlines",
+    response_model=List[PendingTaskDeadlineResponse],
+    summary="Статистика по срокам выполнения задач со статусом Pending",
+)
+async def get_pending_deadlines(
+    database: AsyncSession = Depends(get_database_session),
+) -> List[PendingTaskDeadlineResponse]:
+    stmt = select(
+        Task.title,
+        Task.description,
+        Task.created_at,
+        Task.deadline_at,
+    ).where(
+        Task.status == TaskStatus.Pending.value
+    )
+
+    result = await database.execute(stmt)
+    rows = result.all()
+
+    today = datetime.now(timezone.utc).date()
+    items: List[PendingTaskDeadlineResponse] = []
+
+    for title, description, created_at, deadline_at in rows:
+        remaining_days = (deadline_at.date() - today).days
+
+        items.append(
+            PendingTaskDeadlineResponse(
+                title=title,
+                description=description,
+                start_date=created_at,
+                deadline_at=deadline_at,
+                remaining_days=remaining_days,
+            )
+        )
+
+    return items

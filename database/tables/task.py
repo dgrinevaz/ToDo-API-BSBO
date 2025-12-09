@@ -6,35 +6,39 @@ class Task(database_context):
     __tablename__ = "tasks"
 
     id = Column(
-    Integer,
-    primary_key=True,
-    index=True,
-    autoincrement=True)
+        Integer,
+        primary_key=True,
+        index=True,
+        autoincrement=True)
 
     title = Column(
-    Text,
-    nullable=False)
+        Text,
+        nullable=False)
 
     description = Column(
-    Text,
-    nullable=True)
+        Text,
+        nullable=True)
 
     quadrant = Column(
-    String(2),
-    nullable=False)
+        String(2),
+        nullable=False)
 
     status = Column(
-    Text,
-    nullable=False)
+        Text,
+        nullable=False)
 
     created_at = Column(
-    DateTime(timezone=True),
-    server_default=func.now(),
-    nullable=False)
+        DateTime(timezone=True),
+        server_default=func.now(),
+        nullable=False)
+
+    deadline_at = Column(
+        DateTime(timezone=True),
+        nullable=False)
 
     completed_at = Column(
-    DateTime(timezone=True),
-    nullable=True)
+        DateTime(timezone=True),
+        nullable=True)
 
 def __repr__(self) -> str:
     return f"<Task(id={self.id}, title='{self.title}', quadrant='{self.quadrant}')>"
